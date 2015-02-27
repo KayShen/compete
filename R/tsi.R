@@ -4,24 +4,46 @@
 #t_o is tau O and t_r is tau R; t_o_hat is predicted tau O and t_r_hat is
 #predited tau R
 
-tsi<-function(M,n){
-    m <- nrow(M)
+tsi<-function(M,n,datatype='list',include_drawgames=FALSE){
+ if (datatype=='list'){
+  row=nrow(M)
+  name1=unique(M$home)
+  n2=length(name1)
+  result=matrix(0,n2,n2)
+  for (i in 1:row){
+    home=which(name1==M$home[i])
+    away=which(name1==M$visitor[i])
+    if (M$result[i]=='H')
+      result[home,away]=result[home,away]+1
+    if (M$result[i]=='A')
+      result[away,home]=result[away,home]+1
+  }
+  M=data.frame(result,row.names=name1)
+  M=t(data.frame(t(M),row.names=name1))
+}
+
+  m <- nrow(M)
     rank <- alway(M)
-    rank1 <- rank1(M)
+    rank2 <- rank1(M)
     Mo <- matrix_change(M,rank)
     Mo_wl <- change2(Mo)
     Mo_wl <- Mo_wl*Mo
-    Mr <- matrix_change(M,rank1)
+    Mr <- matrix_change(M,rank2)
     Mr_wl <- change2(Mr)
     Mr_wl <- Mr_wl*Mr
     total = sum(Mo)
+  if (include_drawgames==FALSE){
     t_o = sum(Mo_wl)/total
     t_r = sum(Mr_wl)/total
+}else{
+  t_o = sum(Mo_wl)/row
+  t_r = sum(Mr_wl)/row
+}
     e_o = find_eo(m,n)
     e_r = find_er(m,n)
     t_o_hat = (t_o-e_o)/(1-e_o)
     t_r_hat = (t_r-e_r)/(1-e_r)
-    result = list(rank = rank, t_r = t_r, t_o = t_o, t_r_hat = t_r_hat, t_o_hat = t_o_hat)
+    result = list(rank = rank, t_r = t_r, t_o = t_o, t_r_hat = t_r_hat, t_o_hat = t_o_hat,e0=e_o,er=e_r)
     return(result)
 }
 
@@ -168,20 +190,43 @@ find_eo_large <- function(m,n,n_tries){
     return(result)
 }
 
+find_eo_large1 <- function(m,n,n_tries){
+  sum = 0
+  random=matrix(rbinom(m*(m-1)*n_tries/2,n,.5),n_tries,m*(m-1)/2)
+  for (i in 1:n_tries){
+    M =matrix(0,m,m)
+    M[upper.tri(M)]=random[i,]
+    M1=n-t(M)
+    diag(M1)=0
+    M1[upper.tri(M1)]=0
+    Mk=M+M1
+    rank <- rank1(Mk)
+    Mr <- matrix_change(Mk,rank)
+    Mr_wl <- change2(Mr)
+    Mr_wl <- Mr_wl*Mr
+    total = sum(Mr)
+    t_r = sum(Mr_wl)/total
+    sum = t_r + sum
+  }
+  result = sum/n_tries
+  return(result)
+}
+
+
 rank1 <- function(M){
     n <- nrow(M)
     k = rowSums(M)
     p <- matrix(c(c(1:n),k), nrow = 2, ncol = n, byrow = TRUE)
-    for(i in 2:n){
-        for (j in 1:i){
-            if (p[2,i] > p[2,j]){
+    for(i in 1:(n-1)){
+        for (j in (i+1):n){
+            if ((p[2,i] < p[2,j])|((M[p[1,i],p[1,j]]<M[p[1,j],p[1,i]])&(p[2,i]==p[2,j]))){
                 temp = p[,i]
                 p[,i] = p[,j]
                 p[,j] = temp
+
             }
         }
     }
-    print(p)
     return(p[1,])
 
 }
