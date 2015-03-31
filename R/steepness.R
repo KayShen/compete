@@ -5,7 +5,7 @@ steepness <- function(M,n_tries = 2000,simulation = FALSE){
     ds_d = Dyadic(M)
     n_ds_d = NormDS(ds_d)
     r = n_ds_p[order(n_ds_p)][n:1]
-    r2 = n_ds_d[order(n_ds_p)][n:1]
+    r2 = n_ds_d[order(n_ds_d)][n:1]
     fit = lm(r~rep(1:n))
     fit2 = lm(r2~rep(1:n))
     slope = coefficients(fit)[2]
