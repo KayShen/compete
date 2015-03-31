@@ -17,6 +17,7 @@ Imports:
     reshape2,
     tidyr,
     PlayerRatings
+    stan
 Suggests:
     knitr,
     ggplot2,

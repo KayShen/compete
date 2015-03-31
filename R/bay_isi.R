@@ -80,7 +80,7 @@ for (i in 1:10000){
 result=sort(number,decreasing=TRUE,index.return=TRUE)
 prob=result$x[1:8]/10000
 ranking=save1[result$ix[1:8]]
-kk=list(model=fit,ranking=ranking,prob=prob)
+kk=list(model=fit,ranking=ranking,prob=prob,mean=(attr(fit@sim$samples[[1]],"mean_pars")+attr(fit@sim$samples[[2]],"mean_pars"))/2)
 return (kk)
 }
 
